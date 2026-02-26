@@ -1,127 +1,27 @@
-// --- Display ---
+export const DPR = 1; // Simplify scaling
+export const FORCE_PORTRAIT = true;
 
-// Device pixel ratio (capped at 2 for mobile GPU performance)
-export const DPR = Math.min(window.devicePixelRatio || 1, 2);
-
-// Force portrait mode — set to true for vertical games (dodgers, runners, collectors).
-// On desktop, Scale.FIT + CENTER_BOTH will pillarbox with black bars automatically.
-// Set to false (default) for games that should adapt to device orientation.
-const FORCE_PORTRAIT = false;
-const _isPortrait = FORCE_PORTRAIT || window.innerHeight > window.innerWidth;
-
-// Design dimensions (logical game units at 1x scale)
-const _designW = _isPortrait ? 540 : 960;
-const _designH = _isPortrait ? 960 : 540;
-const _designAspect = _designW / _designH;
-
-// Canvas dimensions = device pixel area, maintaining design aspect ratio.
-// This ensures the canvas has enough resolution for the user's actual display
-// so FIT mode never CSS-upscales (which causes blurriness on retina).
-const _deviceW = window.innerWidth * DPR;
-const _deviceH = window.innerHeight * DPR;
-
-let _canvasW, _canvasH;
-if (_deviceW / _deviceH > _designAspect) {
-  // Viewport wider than design → width-limited by FIT → match device width
-  _canvasW = _deviceW;
-  _canvasH = Math.round(_deviceW / _designAspect);
-} else {
-  // Viewport taller than design → width-limited by FIT → match device width
-  _canvasW = Math.round(_deviceH * _designAspect);
-  _canvasH = _deviceH;
-}
-
-// PX = canvas pixels per design pixel. Scales all absolute values (sizes, speeds, etc.)
-// from design space to canvas space. Gameplay proportions stay identical across all displays.
-export const PX = _canvasW / _designW;
+// Logical design resolution
+export const DESIGN_WIDTH = 800;
+export const DESIGN_HEIGHT = 1200;
 
 export const GAME = {
-  WIDTH: _canvasW,
-  HEIGHT: _canvasH,
-  IS_PORTRAIT: _isPortrait,
-  GRAVITY: 800 * PX,
+  WIDTH: DESIGN_WIDTH,
+  HEIGHT: DESIGN_HEIGHT,
+  IS_PORTRAIT: true,
 };
 
-// --- Safe Zone (Play.fun widget overlay) ---
-// The Play.fun SDK widget renders a 75px fixed bar at top:0, z-index:9999.
-// All UI text, buttons, and interactive elements must be positioned below SAFE_ZONE.TOP.
-export const SAFE_ZONE = {
-  TOP: GAME.HEIGHT * 0.08,
-  BOTTOM: 0,
-  LEFT: 0,
-  RIGHT: 0,
-};
-
-// --- Player ---
-
-const SPRITE_ASPECT = 1.5;
-
-export const PLAYER = {
-  START_X: GAME.WIDTH * 0.25,
-  START_Y: GAME.HEIGHT * 0.65,
-  WIDTH: GAME.WIDTH * 0.08,
-  HEIGHT: GAME.WIDTH * 0.08 * SPRITE_ASPECT,
-  SPEED: 200 * PX,
-  JUMP_VELOCITY: -400 * PX,
-  COLOR: 0x44aaff,
-};
-
-// --- Colors ---
-
-export const COLORS = {
-  // Gameplay
-  SKY: 0x87ceeb,
-  GROUND: 0x4a7c2e,
-  GROUND_DARK: 0x3a6320,
-  PLAYER: 0x44aaff,
-
-  // UI text
-  UI_TEXT: '#ffffff',
-  UI_SHADOW: '#000000',
-  MUTED_TEXT: '#8888aa',
-  SCORE_GOLD: '#ffd700',
-
-  // Menu / GameOver gradient backgrounds
-  BG_TOP: 0x0f0c29,
-  BG_BOTTOM: 0x302b63,
-
-  // Buttons
-  BTN_PRIMARY: 0x6c63ff,
-  BTN_PRIMARY_HOVER: 0x857dff,
-  BTN_PRIMARY_PRESS: 0x5a52d5,
-  BTN_TEXT: '#ffffff',
-};
-
-// --- UI sizing (proportional to game dimensions) ---
-
+// UI Sizing
 export const UI = {
   FONT: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-  TITLE_RATIO: 0.08,          // title font size as % of GAME.HEIGHT
-  HEADING_RATIO: 0.05,        // heading font size
-  BODY_RATIO: 0.035,          // body/button font size
-  SMALL_RATIO: 0.025,         // hint/caption font size
-  BTN_W_RATIO: 0.45,          // button width as % of GAME.WIDTH
-  BTN_H_RATIO: 0.075,         // button height as % of GAME.HEIGHT
-  BTN_RADIUS: 12 * PX,        // button corner radius
-  MIN_TOUCH: 44 * PX,         // minimum touch target
-  // Score HUD omitted — Play.fun widget displays score in SAFE_ZONE.TOP area
 };
 
-// --- Visible Touch Controls ---
-// Semi-transparent arrow indicators for touch-capable devices.
-// Use capability detection: ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)
-
-export const TOUCH = {
-  BUTTON_SIZE: GAME.WIDTH * 0.12,       // 12% of canvas width
-  ALPHA_IDLE: 0.35,
-  ALPHA_ACTIVE: 0.6,
-  MARGIN_X: GAME.WIDTH * 0.08,          // Inset from screen edge
-  MARGIN_BOTTOM: GAME.HEIGHT * 0.06,    // Up from bottom
-  ARROW_COLOR: 0xffffff,
+export const COLORS = {
+  SKY: 0x000000, // Black background for neon tetris
+  UI_TEXT: '#ffffff',
 };
 
-// --- Transitions ---
-
-export const TRANSITION = {
-  FADE_DURATION: 350,
+// Safe Zone for Play.fun widget
+export const SAFE_ZONE = {
+  TOP: 100, // 100px from top
 };

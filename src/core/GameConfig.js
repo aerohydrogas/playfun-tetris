@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME, COLORS, DPR } from './Constants.js';
+import { GAME, COLORS } from './Constants.js';
 import { BootScene } from '../scenes/BootScene.js';
 import { GameScene } from '../scenes/GameScene.js';
 import { GameOverScene } from '../scenes/GameOverScene.js';
@@ -13,17 +13,18 @@ export const GameConfig = {
   roundPixels: true,
   antialias: true,
   render: {
-    preserveDrawingBuffer: true,  // Needed for iterate-client screenshots
+    preserveDrawingBuffer: true,
   },
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    zoom: 1 / DPR,
+    width: GAME.WIDTH,
+    height: GAME.HEIGHT
   },
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: GAME.GRAVITY },
+      gravity: { y: 0 },
       debug: false,
     },
   },
