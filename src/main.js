@@ -1,64 +1,47 @@
-import Phaser from 'phaser';
-import { GameConfig } from './core/GameConfig.js';
-import { eventBus, Events } from './core/EventBus.js';
-import { gameState } from './core/GameState.js';
+// Tetris game logic
 
-const game = new Phaser.Game(GameConfig);
-
-// Expose for Playwright testing
-window.__GAME__ = game;
-window.__GAME_STATE__ = gameState;
-window.__EVENT_BUS__ = eventBus;
-window.__EVENTS__ = Events;
-
-// --- AI-readable game state snapshot ---
-// Returns a concise JSON string for automated agents to understand the game
-// without interpreting pixels. Extend this as you add entities and mechanics.
-window.render_game_to_text = () => {
-  if (!game || !gameState) return JSON.stringify({ error: 'not_ready' });
-
-  const activeScenes = game.scene.getScenes(true).map(s => s.scene.key);
-  const payload = {
-    // Coordinate system: origin top-left, x increases rightward, y increases downward
-    coords: 'origin:top-left x:right y:down',
-    mode: gameState.gameOver ? 'game_over' : gameState.started ? 'playing' : 'menu',
-    scene: activeScenes[0] || null,
-    scenes: activeScenes,
-    score: gameState.score,
-    bestScore: gameState.bestScore,
-  };
-
-  // Add player info when in gameplay
-  const gameScene = game.scene.getScene('GameScene');
-  if (gameState.started && gameScene?.player?.sprite?.body) {
-    const s = gameScene.player.sprite;
-    const body = s.body;
-    payload.player = {
-      x: Math.round(s.x),
-      y: Math.round(s.y),
-      vx: Math.round(body.velocity.x),
-      vy: Math.round(body.velocity.y),
-      onGround: body.blocked.down,
-    };
-  }
-
-  // Add visible entities (extend as you add obstacles, enemies, collectibles)
-  // payload.entities = [];
-
-  return JSON.stringify(payload);
-};
-
-// --- Deterministic time-stepping hook ---
-// Lets automated test scripts advance the game by a precise duration.
-// The game loop runs normally via RAF; this just waits for real time to elapse.
-// For frame-precise control in @playwright/test, prefer page.clock.install() + runFor().
-window.advanceTime = (ms) => {
-  return new Promise((resolve) => {
-    const start = performance.now();
-    function step() {
-      if (performance.now() - start >= ms) return resolve();
-      requestAnimationFrame(step);
+class Tetris {
+    constructor() {
+        this.board = this.createBoard();
+        this.currentPiece = this.createPiece();
     }
-    requestAnimationFrame(step);
-  });
-};
+
+    createBoard() {
+        // Initialize a 20x10 board filled with zeros
+        return Array.from({ length: 20 }, () => Array(10).fill(0));
+    }
+
+    createPiece() {
+        // Logic to create a new Tetris piece
+        const pieces = [
+            [[1, 1, 1, 1]],  // I piece
+            [[1, 1], [1, 1]], // O piece
+            [[0, 1, 1], [1, 1, 0]], // S piece
+            [[1, 1, 0], [0, 1, 1]], // Z piece
+            [[1, 0, 0], [1, 1, 1]], // L piece
+            [[0, 0, 1], [1, 1, 1]], // J piece
+            [[0, 1, 0], [1, 1, 1]]  // T piece
+        ];
+        return pieces[Math.floor(Math.random() * pieces.length)];
+    }
+
+    draw() {
+        // Render the board and the piece
+        /* Rendering logic goes here */
+    }
+
+    rotate() {
+        // Logic to rotate the current piece
+        /* Rotation logic goes here */
+    }
+
+    move() {
+        // Logic to move the current piece downwards
+        /* Movement logic goes here */
+    }
+
+    drop() {
+        // Logic for dropping the current piece to the lowest available position
+        /* Drop logic goes here */
+    }
+}
