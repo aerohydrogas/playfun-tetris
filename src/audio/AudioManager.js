@@ -1,105 +1,80 @@
-import { start, sequence, note } from '@strudel/web';
+import {
+  note,
+  s,
+  stack,
+  choose
+} from '@strudel/web';
 
 export class AudioManager {
-    constructor() {
-        this.scheduler = null;
-        this.isMuted = false;
-        
-        // Simple SFX synth (can be improved or replaced with samples)
-        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  constructor() {
+    this.initialized = false;
+    this.isMuted = false;
+    this.scheduler = null;
+  }
+
+  async init() {
+    if (this.initialized) return;
+    try {
+      console.log('Audio: Initialized');
+      this.initialized = true;
+      this.playBGM();
+    } catch (e) {
+      console.error('Audio init failed:', e);
     }
+  }
 
-    startMusic() {
-        if (this.scheduler) return;
+  playBGM() {
+    if (!this.initialized || this.scheduler || this.isMuted) return;
 
-        // Fast cyberpunk-ish beat
-        // Using a basic synth pattern available in Strudel
-        // This is a placeholder for a complex composition
-        this.scheduler = sequence(
-            [
-                note("c3").s("sawtooth").lowpass(2000),
-                note("eb3").s("sawtooth").lowpass(1500),
-                note("g3").s("sawtooth").lowpass(3000),
-                note("bb3").s("sawtooth").lowpass(2500)
-            ]
-        )
-        .stack(
-            sequence("bd sd bd sd").s("gm_drums").bank("TR-808")
-        )
-        .cpm(140) // Fast tempo
-        .loop()
-        .play();
+    // Neon Chillwave / Synthwave ambient
+    const bass = note("c2 eb2 g2 bb2")
+      .s("sawtooth")
+      .lpf(s("200 600").slow(16)) // Slow filter sweep
+      .legato(1)
+      .gain(0.15)
+      .slow(4);
+
+    const pads = note("c4 eb4 g4")
+      .s("triangle")
+      .lpf(800)
+      .decay(2)
+      .sustain(0.5)
+      .gain(0.1)
+      .slow(8);
+      
+    const arps = note("c5 eb5 g5 bb5 c6")
+      .s("sine")
+      .velocity(choose(0.1, 0)) 
+      .fast(2)
+      .gain(0.05);
+
+    this.scheduler = stack(bass, pads, arps).play();
+  }
+
+  stopBGM() {
+    if (this.scheduler) {
+      this.scheduler.stop();
+      this.scheduler = null;
     }
+  }
 
-    stopMusic() {
-        if (this.scheduler) {
-            this.scheduler.stop();
-            this.scheduler = null;
-        }
+  playSFX(key) {
+    if (this.isMuted || !this.initialized) return;
+    
+    // Simple synth SFX
+    if (key === 'rotate') {
+       s("sine").freq(440).decay(0.05).gain(0.1).play();
+    } else if (key === 'move') {
+       s("noise").decay(0.02).gain(0.05).play();
+    } else if (key === 'lock') {
+       s("sawtooth").lpf(200).decay(0.1).gain(0.2).play();
+    } else if (key === 'clear') {
+       note("c5 e5 g5 c6").s("sine").fast(16).decay(0.2).gain(0.1).play();
+    } else if (key === 'gameover') {
+       note("c3 bb2 g2 eb2 c2").s("sawtooth").slow(2).decay(1).gain(0.2).play();
+       this.stopBGM();
     }
-
-    playSFX(type) {
-        if (this.isMuted) return;
-
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-
-        const now = this.ctx.currentTime;
-        
-        switch (type) {
-            case 'move':
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(200, now);
-                osc.frequency.exponentialRampToValueAtTime(100, now + 0.05);
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-                osc.start(now);
-                osc.stop(now + 0.05);
-                break;
-                
-            case 'rotate':
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.linearRampToValueAtTime(600, now + 0.1);
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.1);
-                break;
-                
-            case 'drop':
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.1);
-                break;
-
-            case 'clear':
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
-                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.2);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.linearRampToValueAtTime(0, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-                break;
-                
-            case 'gameover':
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(300, now);
-                osc.frequency.linearRampToValueAtTime(100, now + 1.0);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.linearRampToValueAtTime(0, now + 1.0);
-                osc.start(now);
-                osc.stop(now + 1.0);
-                break;
-        }
-    }
+  }
 }
+
+export const audioManager = new AudioManager();
